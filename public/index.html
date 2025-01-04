@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Draw Flag Football Plays Online for Free</title>
+  <meta name="description" content="Draw flag football plays online for free. Fee and easy to use. Create, print, and share flag football plays with your team.">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
+  <style>
+    .header,.footer {
+      background-color: #FFA500;
+      padding: 10px 0;
+      margin-bottom: 30px;
+    }
+    .footer {
+      margin-top: 30px;
+      margin-bottom: 0px;
+    }
+    .header h1, .footer p {
+      color: white;
+      margin: 0;
+      text-align: center;
+      font-size: 1.8rem;
+    }
+    .header h1 {
+      text-shadow: 1px 1px 1px #000;
+    } 
+    .footer p {
+      font-size: 1.2rem;
+    }
+    .container {
+      max-width: 1200px;
+    }
+
+    .container:nth-of-type(2) {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <h1>Flag Football Play Designer - 100% Free and Easy to Use</h1>
+    </div>
+  </header>
+
+  <div class="container">
+    <form id="form">
+      <div id="drill-maker" data-on-change="handleChange"></div>
+    </form>
+  </div>
+  <footer class="footer">
+    <div class="container">
+      <p>Flag Football Play Designer that is 100% Free and easy to use.</p>
+    </div>
+  </footer>
+  <div class="container">
+    <div class="mb-3">
+      <label for="image">Generated image</label>
+      <img id="image" src="" class="img-fluid" />
+    </div>
+    <div>
+      <label for="json">Exported data (<a href="#" id="json-update">update</a>)</label>
+      <textarea id="json" class="form-control" autocomplete="off" rows="5"></textarea>
+    </div>
+  </div>
+
+  <script type="text/javascript">
+    var exportedJson;
+
+    function handleChange(json, dataURI) {
+      exportedJson = json;
+      document.getElementById("image").src = dataURI || "";
+    }
+
+    document.getElementById("json-update").onclick = event => {
+      document.getElementById("json").value = exportedJson ? JSON.stringify(exportedJson) : "";
+      return false;
+    }
+
+    document.getElementById("form").onsubmit = event => {
+      event.preventDefault();
+      window.dispatchEvent(new Event("drillMakerBlur"));
+    }
+  </script>
+</body>
+</html>
