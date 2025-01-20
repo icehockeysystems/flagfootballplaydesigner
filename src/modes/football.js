@@ -773,7 +773,40 @@ const positions = [
     </svg>
     `,
   },
-
+  {
+    name: "X Player",
+    tool: "svg",
+    props: { id: "x-player", size:22 },
+    icon: `
+      <svg width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="7.8499035" cy="7.8499036" r="7.8499034" style="fill: #231f20;"/>
+          <path data-paper-data='{"skipFill":true}' d="M7.8493441,6.9277677l1.0520892-2.1395427h1.7726377l-1.7991609,3.1916319,1.8477869,3.2450468h-1.7903198l-1.083033-2.1793276-1.083033,2.1793276h-1.7855309l1.842998-3.2450468-1.794372-3.1916319h1.7678487l1.0520892,2.1395427Z" style="fill: #fff;"/>
+      </svg>
+    `,
+  },
+  {
+    name: "Y Player",
+    tool: "svg",
+    props: { id: "y-player", size:22 },
+    icon: `
+      <svg width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="7.8499035" cy="7.8499036" r="7.8499034" style="fill: #231f20;"/>
+            <path data-paper-data='{"skipFill":true}' d="M7.8642507,7.5703297l1.2568359-2.9643555h1.7783203l-2.2001953,4.3759766v2.453125h-1.6699219v-2.453125l-2.1953125-4.3759766h1.7685547l1.2617188,2.9643555Z" style="fill: #fff;"/>
+      </svg>
+    `,
+  },
+  {
+    name: "Z Player",
+    tool: "svg",
+    props: { id: "z-player", size:22 },
+    icon: `
+      <svg width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="7.8499035" cy="7.8499036" r="7.8499034" style="fill: #231f20;"/>
+              <path data-paper-data='{"skipFill":true}' d="M7.342278,10.1967945h3.3881836v1.3144531h-5.5205078v-.9003906l3.3789062-4.8691406h-3.3984375v-1.3193359h5.5068359v.8764648l-3.3549805,4.8979492Z" style="fill: #fff;"/>
+      </svg>
+    `,
+  },
+  
 ];
 
 const numbers = [
