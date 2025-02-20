@@ -537,7 +537,9 @@ function App({
   // Update handleShareClick to include .html extension
   const handleShareClick = () => {
     const urlPath = generateRandomString();
-    const previewUrl = `${window.location.origin}/plays/${urlPath}.html`;
+    // Use environment variable or default to localhost
+    const baseUrl = process.env.REACT_APP_BASE_URL || 'http://localhost:3001';
+    const previewUrl = `${baseUrl}/plays/${urlPath}.html`;
     setShareUrl(previewUrl);
     setIsModalOpen(true);
   };
