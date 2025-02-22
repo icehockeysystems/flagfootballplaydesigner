@@ -9,22 +9,21 @@ import { createPortal } from 'react-dom';
 import ReactDOM from 'react-dom';
 
 // Add this at the top of your file, before the App component
-console.log = (function(old_function) {
-  return function(...args) {
-    old_function.apply(this, args);
-    
-    // Store logs in localStorage
-    const logs = JSON.parse(localStorage.getItem('debug_logs') || '[]');
-    logs.push(args.join(' '));
-    localStorage.setItem('debug_logs', JSON.stringify(logs));
-  };
-})(console.log);
+const preventFormSubmissions = () => {
+  // Prevent all form submissions
+  document.addEventListener('submit', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+  }, true);  // Use capture phase
 
-// Add this to detect unload events
-window.onbeforeunload = function(e) {
-  console.log('Before unload detected');
-  console.log('Unload event:', e);
-  return null;
+  // Find and disable the specific form
+  const form = document.getElementById('form');
+  if (form) {
+    form.onsubmit = null;
+    form.action = 'javascript:void(0);';
+    form.method = 'GET';  // Change to GET to prevent POST behavior
+  }
 };
 
 // Add this ShareModal component outside the App component
@@ -67,24 +66,6 @@ const showGlobalModal = (url) => {
     </Modal>,
     modalContainer
   );
-};
-
-// Add this at the top of your file, before the App component
-const preventFormSubmissions = () => {
-  // Prevent all form submissions
-  document.addEventListener('submit', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    return false;
-  }, true);  // Use capture phase
-
-  // Find and disable the specific form
-  const form = document.getElementById('form');
-  if (form) {
-    form.onsubmit = null;
-    form.action = 'javascript:void(0);';
-    form.method = 'GET';  // Change to GET to prevent POST behavior
-  }
 };
 
 // Add these styled components at the bottom of the file
@@ -226,8 +207,6 @@ function App({
 
   // Add this useRef to store the canvas instance
   const paperInstance = useRef(null);
-
-  console.log('App component rendering');
 
   // Exports title, description, and canvas data as JSON.
   const exportData = useCallback(() => {
@@ -416,11 +395,8 @@ function App({
 
   // Update the initialization useEffect to only run once
   useEffect(() => {
-    console.log('Paper.js initialization effect running');
-    
     if (!initialized) {
       function initialize() {
-        console.log('Initializing paper.js');
         var newPaper = new Canvas();
         setPaper(newPaper);
         newPaper.init(canvasRef.current, mode.strokeWidth, setCanvasJSON);
@@ -428,10 +404,8 @@ function App({
       }
       
       if (document.readyState === "complete") {
-        console.log('Document ready, initializing immediately');
         initialize();
       } else {
-        console.log('Document not ready, waiting for load event');
         window.addEventListener('load', initialize, { once: true }); // Will only run once
       }
     }
@@ -482,16 +456,6 @@ function App({
     setShowEraseButton(initialized && !paper.isEmpty())
   }, [initialized, exportData])
 
-  // Add this useEffect to check for stored logs
-  useEffect(() => {
-    // Check for stored logs after reload
-    const logs = JSON.parse(localStorage.getItem('debug_logs') || '[]');
-    if (logs.length > 0) {
-      console.log('Previous logs before reload:', logs);
-      localStorage.removeItem('debug_logs');
-    }
-  }, []);
-
   // Add this useEffect to cleanup when component unmounts
   useEffect(() => {
     return () => {
@@ -534,12 +498,10 @@ function App({
     };
   }, []);
 
-  // Update handleShareClick to include .html extension
+  // Update handleShareClick to use relative paths
   const handleShareClick = () => {
     const urlPath = generateRandomString();
-    // Use environment variable or default to localhost
-    const baseUrl = process.env.REACT_APP_BASE_URL || 'http://localhost:3001';
-    const previewUrl = `${baseUrl}/plays/${urlPath}.html`;
+    const previewUrl = `/plays/${urlPath}.html`;
     setShareUrl(previewUrl);
     setIsModalOpen(true);
   };
@@ -555,11 +517,17 @@ function App({
         description,
         imageData: canvasRef.current.toDataURL('image/png'),
         canvasJSON,
-        urlPath: shareUrl.split('/plays/')[1].replace('.html', '') // Remove .html when sending to server
+        urlPath: generateRandomString()
       };
       
-      console.log('Sending request...');
-      const response = await fetch('http://localhost:3001/api/plays', {
+      // Save current drawing state before making the request
+      localStorage.setItem('lastDrawing', JSON.stringify({
+        title,
+        description,
+        canvasJSON
+      }));
+      
+      const response = await fetch('/api/plays.php', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -567,32 +535,32 @@ function App({
         body: JSON.stringify(playData)
       });
 
-      console.log('Got response');
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server response:', errorText);
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       const result = await response.json();
-      console.log('Parsed result:', result);
       
       if (result.success) {
-        // Save the complete state before reload
-        localStorage.setItem('lastDrawing', JSON.stringify({
-          title,
-          description,
-          canvasJSON,
-          imageData: canvasRef.current.toDataURL('image/png')
-        }));
-        
-        // Wait for the page to be created
-        await navigator.clipboard.writeText(shareUrl);
-        
+        const fullUrl = `${window.location.origin}/plays/${result.playId}.html`;
+        setShareUrl(fullUrl);
+        await navigator.clipboard.writeText(fullUrl);
         setIsModalOpen(false);
         setTimeout(() => {
           window.location.reload();
         }, 500);
       } else {
-        setErrorMessage('Failed to create page. Please try again.');
+        setErrorMessage(result.error || 'Failed to create page. Please try again.');
+        // Remove saved drawing if there was an error
+        localStorage.removeItem('lastDrawing');
       }
     } catch (error) {
       console.error('Error:', error);
       setErrorMessage('Failed to create page. Please try again.');
+      // Remove saved drawing if there was an error
+      localStorage.removeItem('lastDrawing');
     } finally {
       setIsCreatingPage(false);
     }
@@ -674,7 +642,8 @@ function App({
                 style={{ 
                   backgroundColor: '#00cc44',
                   borderColor: '#00cc44',
-                  color: 'white'
+                  color: 'white',
+                  fontWeight: 'bold'
                 }}
               >
                 <i className="fas fa-share-alt"></i> Share Play
@@ -793,6 +762,7 @@ const Actions = styled.div`
     border-color: #cc0000 !important;
   }
 
+  /* Update share button color */
   button:has(i.fa-share-alt) {
     background-color: #00cc44 !important;
     border-color: #00cc44 !important;
