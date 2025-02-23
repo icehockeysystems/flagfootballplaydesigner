@@ -7,6 +7,8 @@ import VariantSwitcher from './VariantSwitcher';
 import Toolbar from './Toolbar';
 import { createPortal } from 'react-dom';
 import ReactDOM from 'react-dom';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 // Add this at the top of your file, before the App component
 const preventFormSubmissions = () => {
@@ -169,6 +171,26 @@ const generateRandomString = () => {
   return result;
 };
 
+// Add this near your other styled components
+const QuillWrapper = styled.div`
+  .ql-container {
+    min-height: 120px;
+    font-size: 16px;
+    font-family: inherit;
+  }
+  
+  .ql-toolbar {
+    background-color: #f9f9f9;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+  }
+  
+  .ql-editor {
+    min-height: 120px;
+    background-color: white;
+  }
+`;
+
 // Define the App component
 function App({
   mode,
@@ -329,22 +351,28 @@ function App({
 
       // Description and footer sections remain the same
       if (description) {
-        doc.setFontSize(subheadingFontSize)
+        doc.setFontSize(subheadingFontSize);
         doc.text("Description", margin, workingY, {
           baseline: "top",
-        })
-        workingY += (subheadingFontSize / ppi) + (5 / ppi)
+        });
+        workingY += (subheadingFontSize / ppi) + (5 / ppi);
 
-        doc.setLineWidth(underlineHeight)
-        doc.setDrawColor(37, 62, 86)
-        doc.line(margin, workingY, paperWidth - margin, workingY)
-        workingY += underlineHeight + .25
+        doc.setLineWidth(underlineHeight);
+        doc.setDrawColor(37, 62, 86);
+        doc.line(margin, workingY, paperWidth - margin, workingY);
+        workingY += underlineHeight + .25;
 
-        doc.setFontSize(descriptionFontSize)
-        doc.text(doc.splitTextToSize(description, contentWidth), margin, workingY, {
+        doc.setFontSize(descriptionFontSize);
+        
+        // Convert HTML to plain text for PDF
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = description;
+        const plainText = tempDiv.textContent || tempDiv.innerText || '';
+        
+        doc.text(doc.splitTextToSize(plainText, contentWidth), margin, workingY, {
           baseline: "top",
           lineHeightFactor: 1.4,
-        })
+        });
       }
 
       doc.setFontSize(footerFontSize)
@@ -498,11 +526,12 @@ function App({
     };
   }, []);
 
-  // Update handleShareClick to use relative paths
+  // Update handleShareClick to include full domain
   const handleShareClick = () => {
+    // Generate the random string once and use it consistently
     const urlPath = generateRandomString();
-    const previewUrl = `/plays/${urlPath}.html`;
-    setShareUrl(previewUrl);
+    const fullUrl = `${window.location.origin}/plays/${urlPath}.html`;
+    setShareUrl(fullUrl);
     setIsModalOpen(true);
   };
 
@@ -512,12 +541,15 @@ function App({
       setIsCreatingPage(true);
       setErrorMessage('');
 
+      // Use the urlPath from the shareUrl instead of generating a new one
+      const urlPath = shareUrl.split('/plays/')[1].replace('.html', '');
+
       const playData = {
         title,
         description,
         imageData: canvasRef.current.toDataURL('image/png'),
         canvasJSON,
-        urlPath: generateRandomString()
+        urlPath: urlPath  // Use the same urlPath
       };
       
       // Save current drawing state before making the request
@@ -616,13 +648,21 @@ function App({
             placeholder="Play Name"
             className={formInputClass}
           />
-          <textarea
-            value={description}
-            onChange={event => setDescription(event.target.value)}
-            placeholder="Play Description"
-            className={formInputClass}
-            rows="4"
-          ></textarea>
+          <QuillWrapper>
+            <ReactQuill
+              value={description}
+              onChange={setDescription}
+              placeholder="Play Description"
+              modules={{
+                toolbar: [
+                  ['bold', 'italic', 'underline'],
+                  [{ 'color': [] }],
+                  [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                  ['clean']
+                ]
+              }}
+            />
+          </QuillWrapper>
         </Form>
       }
       {(showDownloadButtons || showEraseButton) &&
