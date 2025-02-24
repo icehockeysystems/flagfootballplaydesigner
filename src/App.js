@@ -581,7 +581,7 @@ function App({
         await navigator.clipboard.writeText(fullUrl);
         setIsModalOpen(false);
         setTimeout(() => {
-          window.location.reload();
+          window.location.href = '/?success=true';  // Add success parameter
         }, 500);
       } else {
         setErrorMessage(result.error || 'Failed to create page. Please try again.');

@@ -10,35 +10,37 @@
   <!-- End Google Tag Manager -->
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <title>Draw Flag Football Plays Online for Free</title>
-  <meta name="description" content="Draw flag football plays online for free. Fee and easy to use. Create, print, and share flag football plays with your team.">
+  <title>Flag Football Play Designer |Free and Easy to Use</title>
+  <meta name="description" content="Create flag football plays online with a simple drawing tool. Download play and create a url to share with other coaches and players with the click of a button. 100% free with no sign in or sign up required.">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <style>
-    .header,.footer {
-      background-color: #FFA500;
-      padding: 10px 0;
-      margin-bottom: 30px;
+    .header {
+      background-color: #2196F3;
+      padding: 1.5rem;
+      margin-bottom: 20px;
     }
     .footer {
       margin-top: 30px;
       margin-bottom: 0px;
+      padding: 1.5rem;
+      background-color: #333333;
     }
     .header h1, .footer p {
       color: white;
       margin: 0;
       text-align: center;
-      font-size: 1.8rem;
+      font-size: 2rem;
     }
-    .header h1 {
-      text-shadow: 1px 1px 1px #000;
-    } 
+    .header h2 {
+      font-size: 1.4rem;
+      color: #eeeeee;
+      text-align: center;
+    }
     .h2, h2 {
-    font-size: 1.6rem;
-    background: #FFA500;
+    font-size: 1.2rem;
     padding: 10px;
-    color: #fff;
-    text-shadow: 1px 1px 1px #000;
+    color: #000;
 }
 p,li {font-size: 1.4rem;}
     .footer p {
@@ -64,20 +66,31 @@ p,li {font-size: 1.4rem;}
     }
 
     .nav-links a {
-      color: #FFA500;
-      text-decoration: none;
+      color: #333;
+      text-decoration: underline;
       margin: 0 15px;
       font-size: 1.1rem;
       font-weight: bold;
     }
 
     .nav-links a:hover {
-      color: #00E5FF;
+      color: #2196F3;
       text-decoration: none;
     }
 
     .nav-links a.active {
-      color: #00E5FF;
+      color: #2196F3;
+    }
+
+    .success-message {
+      background-color: #00cc44;
+      color: white;
+      text-align: center;
+      padding: 1rem;
+      margin: 1rem auto;
+      max-width: 800px;
+      border-radius: 4px;
+      display: none;
     }
   </style>
 </head>
@@ -88,9 +101,14 @@ p,li {font-size: 1.4rem;}
   <!-- End Google Tag Manager (noscript) -->
   <header class="header">
     <div class="container">
-      <h1>Draw Flag Football Plays Online for Free</h1>
+      <h1>Flag Football Play Designer</h1>
+      <h2>Create and share your flag football plays online</h2>
     </div>
   </header>
+
+  <div id="successMessage" class="success-message">
+    Play created successfully! The URL has been copied to your clipboard.
+  </div>
 
   <div class="container">
     <form id="form">
@@ -104,9 +122,10 @@ p,li {font-size: 1.4rem;}
 <h2>Key Features</h2>
 
 <ul>
-  <li>Intuitive interface: Design plays effortlessly with our user-friendly drag-and-drop tool.</li>
+  <li>Intuitive interface: Design plays effortlessly with our user-friendly drawing tool.</li>
   <li>Customization options: Personalize your plays with various player icons, field layouts, and drawing tools.</li>
   <li>Export options: Download your plays in high-quality PNG or PDF formats for printing or sharing.</li>
+  <li>Share plays by creating a url to share with other coaches and players.</li>
   <li>100% free: No hidden fees, subscriptions, or limitations.</li>
 </ul>
   </div>
@@ -144,6 +163,21 @@ p,li {font-size: 1.4rem;}
     document.getElementById("form").onsubmit = event => {
       event.preventDefault();
       window.dispatchEvent(new Event("drillMakerBlur"));
+    }
+
+    // Check for success parameter in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('success') === 'true') {
+      const successMessage = document.getElementById('successMessage');
+      if (successMessage) {
+        successMessage.style.display = 'block';
+        // Hide message after 5 seconds
+        setTimeout(() => {
+          successMessage.style.display = 'none';
+          // Remove success parameter from URL
+          window.history.replaceState({}, '', '/');
+        }, 5000);
+      }
     }
   </script>
 </body>

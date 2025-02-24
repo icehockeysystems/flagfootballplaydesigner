@@ -72,87 +72,145 @@ try {
         <head>
             <meta charset='UTF-8'>
             <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-            <title>$data[title]</title>
+            <title>" . htmlspecialchars($data['title'] ?: 'Play') . "</title>
             <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css'>
             <style>
                 body {
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
                     margin: 0;
-                    padding: 20px;
-                    font-family: Arial, sans-serif;
-                    background-color: #f5f5f5;
+                    padding: 0;
+                    line-height: 1.6;
+                    min-height: 100vh;
+                    display: flex;
+                    flex-direction: column;
                 }
-                .container {
+                header {
+                    background-color: #2196F3;
+                    color: white;
+                    padding: 1rem;
+                    text-align: center;
+                }
+                header h1 {
+                    margin: 0;
+                    font-size: 2.5rem;
+                    font-weight: bold;
+                }
+                header h2 {
+                    font-size:1rem;
+                }
+                header h2 a {color: #eeeeee;}
+                main {
                     max-width: 800px;
                     margin: 0 auto;
-                    background: white;
                     padding: 20px;
-                    border-radius: 8px;
-                    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                    width: 100%;
+                    box-sizing: border-box;
+                    flex: 1;
                 }
-                h1 {
-                    color: #FFA500;
+                footer {
+                    background-color: #333;
+                    color: white;
                     text-align: center;
-                    margin-bottom: 20px;
+                    padding: 1rem;
+                    margin-top: auto;
                 }
-                .play-description {
-                    margin-bottom: 20px;
-                    color: #666;
+                footer a {
+                    color: white;
+                    text-decoration: none;
+                    margin: 0 10px;
                 }
-                .play-image {
-                    max-width: 100%;
-                    height: auto;
-                    display: block;
-                    margin: 0 auto;
+                footer a:hover {
+                    text-decoration: underline;
                 }
                 .button-container {
                     display: flex;
-                    justify-content: center;
                     gap: 10px;
-                    margin: 20px 0;
+                    margin-bottom: 20px;
+                    justify-content: center;
                 }
-                .download-button {
-                    background-color: #2196F3;
-                    color: white;
-                    border: none;
+                .button {
                     padding: 10px 20px;
                     border-radius: 4px;
+                    border: none;
                     cursor: pointer;
-                    text-decoration: none;
+                    font-size: 16px;
                     display: inline-flex;
                     align-items: center;
-                }
-                .download-button:hover {
-                    background-color: #1976D2;
-                }
-                .download-button i {
-                    margin-right: 8px;
-                }
-                .back-link {
-                    display: block;
-                    text-align: center;
-                    margin-top: 20px;
-                    color: #2196F3;
                     text-decoration: none;
                 }
-                .back-link:hover {
-                    text-decoration: underline;
+                .button i {
+                    margin-right: 8px;
+                }
+                .share-button {
+                    background-color: #00cc44;
+                    color: white;
+                }
+                .share-button:hover {
+                    background-color: #00b33c;
+                }
+                .new-button {
+                    background-color: #2196F3;
+                    color: white;
+                }
+                .new-button:hover {
+                    background-color: #1976D2;
+                }
+                img {
+                    max-width: 100%;
+                    height: auto;
+                    margin-bottom: 20px;
+                    border-radius: 4px;
+                }
+                .description {
+                    background-color: #f9f9f9;
+                    padding: 20px;
+                    border-radius: 4px;
+                    margin-top: 20px;
                 }
             </style>
+            <script>
+                function copyToClipboard() {
+                    navigator.clipboard.writeText(window.location.href)
+                        .then(() => {
+                            const button = document.querySelector('.share-button');
+                            const originalText = button.innerHTML;
+                            button.innerHTML = '<i class=\"fas fa-check\"></i> URL Copied!';
+                            setTimeout(() => {
+                                button.innerHTML = originalText;
+                            }, 2000);
+                        })
+                        .catch(err => {
+                            console.error('Failed to copy URL:', err);
+                        });
+                }
+            </script>
         </head>
         <body>
-            <div class='container'>
-                " . ($data['title'] ? "<h1>$data[title]</h1>" : "") . "
-                <div id='playContent'>
-                    " . ($data['description'] ? "<div class='play-description'>$data[description]</div>" : "") . "
-                    <img class='play-image' src='$urlPath.png' alt='Flag Football Play'>
-                    <div class='button-container'>
-                        <a href='$urlPath.png' download class='download-button'>
-                            <i class='fas fa-download'></i> Download PNG
-                        </a>
-                    </div>
+            <header>
+                <h1>" . htmlspecialchars($data['title'] ?: 'Play') . "</h1>
+                <h2>Brought to you by <a href='https://flagfootballplaydesigner.com'>FlagFootballPlayDesigner.com</a></h2>
+            </header>
+            
+            <main>
+                <div class='button-container'>
+                    <button onclick='copyToClipboard()' class='button share-button'>
+                        <i class='fas fa-share-alt'></i> Share Play
+                    </button>
+                    <a href='/' class='button new-button'>
+                        <i class='fas fa-plus'></i> Create New Play
+                    </a>
                 </div>
-                <a href='/' class='back-link'>Create Your Own Play</a>
-            </div>
+                <img src='" . htmlspecialchars($urlPath) . ".png' alt='" . htmlspecialchars($data['title'] ?: 'Play') . "' />
+                " . ($data['description'] ? "<div class='description'>" . $data['description'] . "</div>" : "") . "
+            </main>
+
+            <footer>
+                <p>
+                    <a href='/'>Home</a> | 
+                    <a href='/contact.html'>Contact</a>
+                </p>
+                <p>Brought to you by <a href='https://flagfootballplaydesigner.com'>FlagFootballPlayDesigner.com</a></p>
+            </footer>
         </body>
         </html>";
         
