@@ -167,7 +167,22 @@ try {
                     border-radius: 4px;
                     margin-top: 20px;
                 }
+                .download-button {
+                    background-color: #ff9800;
+                    color: white;
+                }
+                .download-button:hover {
+                    background-color: #f57c00;
+                }
+                .pdf-button {
+                    background-color: #f44336;
+                    color: white;
+                }
+                .pdf-button:hover {
+                    background-color: #d32f2f;
+                }
             </style>
+            <script src=\"https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js\"></script>
             <script>
                 function copyToClipboard() {
                     navigator.clipboard.writeText(window.location.href)
@@ -183,6 +198,48 @@ try {
                             console.error('Failed to copy URL:', err);
                         });
                 }
+                function generatePDF() {
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF();
+                    
+                    // Add title
+                    doc.setFontSize(24);
+                    doc.text(\"" . addslashes(htmlspecialchars($data['title'] ?: 'Play')) . "\", 20, 20);
+                    
+                    // Add image with proper aspect ratio
+                    const img = document.querySelector(\"img\");
+                    const maxWidth = 170;
+                    const maxHeight = 170;
+                    
+                    // Calculate aspect ratio
+                    const aspectRatio = img.naturalWidth / img.naturalHeight;
+                    let width = maxWidth;
+                    let height = width / aspectRatio;
+                    
+                    // If height is too large, scale based on height instead
+                    if (height > maxHeight) {
+                        height = maxHeight;
+                        width = height * aspectRatio;
+                    }
+                    
+                    // Center the image horizontally
+                    const x = 20 + (maxWidth - width) / 2;
+                    
+                    // Get the image data from the src
+                    const imgData = img.src;
+                    
+                    doc.addImage(imgData, \"PNG\", x, 40, width, height);
+                    
+                    // Add description if it exists
+                    const description = document.querySelector(\".description\");
+                    if (description) {
+                        doc.setFontSize(12);
+                        doc.text(description.innerText, 20, height + 60);
+                    }
+                    
+                    // Save the PDF
+                    doc.save(\"" . addslashes(htmlspecialchars($data['title'] ?: 'play')) . ".pdf\");
+                }
             </script>
         </head>
         <body>
@@ -192,16 +249,23 @@ try {
             </header>
             
             <main>
+                <img src='" . htmlspecialchars($urlPath) . ".png' alt='" . htmlspecialchars($data['title'] ?: 'Play') . "' />
+                " . ($data['description'] ? "<div class='description'>" . $data['description'] . "</div>" : "") . "
+                
                 <div class='button-container'>
                     <button onclick='copyToClipboard()' class='button share-button'>
                         <i class='fas fa-share-alt'></i> Share Play
+                    </button>
+                    <a href='" . htmlspecialchars($urlPath) . ".png' download class='button download-button'>
+                        <i class='fas fa-download'></i> Download PNG
+                    </a>
+                    <button onclick='generatePDF()' class='button pdf-button'>
+                        <i class='fas fa-file-pdf'></i> Download PDF
                     </button>
                     <a href='/' class='button new-button'>
                         <i class='fas fa-plus'></i> Create New Play
                     </a>
                 </div>
-                <img src='" . htmlspecialchars($urlPath) . ".png' alt='" . htmlspecialchars($data['title'] ?: 'Play') . "' />
-                " . ($data['description'] ? "<div class='description'>" . $data['description'] . "</div>" : "") . "
             </main>
 
             <footer>
