@@ -1,73 +1,4 @@
-<?php
-// Enable error reporting
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
-// Add CORS headers
-header('Access-Control-Allow-Origin: *');
-header('Content-Type: application/json');
-header('Access-Control-Allow-Methods: POST');
-header('Access-Control-Allow-Headers: Content-Type');
-
-// Function to log messages
-function logMessage($message) {
-    error_log($message);  // This will log to PHP's error log
-}
-
-logMessage('Script started');
-
-try {
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        logMessage('Received POST request');
-        
-        // Get POST data
-        $rawData = file_get_contents('php://input');
-        logMessage('Raw data length: ' . strlen($rawData));
-        
-        $data = json_decode($rawData, true);
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new Exception('Invalid JSON: ' . json_last_error_msg());
-        }
-        logMessage('JSON decoded successfully');
-        
-        // Validate data
-        if (!isset($data['urlPath'])) {
-            throw new Exception('urlPath is required');
-        }
-        if (!isset($data['imageData'])) {
-            throw new Exception('imageData is required');
-        }
-        
-        // Create plays directory
-        $playsDir = dirname(__DIR__) . '/plays';
-        logMessage('Using plays directory: ' . $playsDir);
-        
-        if (!file_exists($playsDir)) {
-            if (!mkdir($playsDir, 0755, true)) {
-                throw new Exception('Failed to create plays directory: ' . $playsDir);
-            }
-        }
-        
-        $urlPath = $data['urlPath'];
-        $pngPath = "$playsDir/$urlPath.png";
-        $htmlPath = "$playsDir/$urlPath.html";
-        
-        logMessage('Saving files to: ' . $pngPath);
-        
-        // Save PNG
-        $pngData = str_replace('data:image/png;base64,', '', $data['imageData']);
-        $pngData = base64_decode($pngData);
-        if ($pngData === false) {
-            throw new Exception('Failed to decode base64 image data');
-        }
-        
-        if (file_put_contents($pngPath, $pngData) === false) {
-            throw new Exception('Failed to save PNG file');
-        }
-        logMessage('PNG file saved successfully');
-        
-        // Save HTML
-        $htmlContent = "<!DOCTYPE html>
+<!DOCTYPE html>
         <html lang='en'>
         <head>
             <!-- Google Tag Manager -->
@@ -80,12 +11,7 @@ try {
             
             <meta charset='UTF-8'>
             <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-            <title>" . htmlspecialchars($data['title'] ?: 'Play') . "</title>
-            <link rel="icon" type="image/x-icon" href="/favicon.ico">
-            <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-            <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-            <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-            <link rel="icon" type="image/png" sizes="512x512" href="/favicon-512x512.png">
+            <title>Play</title>
             <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css'>
             <style>
                 body {
@@ -113,7 +39,7 @@ try {
                 }
                 header h2 a {color: #eeeeee;}
                 main {
-                    max-width: 1000px;
+                    max-width: 800px;
                     margin: 0 auto;
                     padding: 20px;
                     width: 100%;
@@ -195,14 +121,14 @@ try {
                     background-color: #d32f2f;
                 }
             </style>
-            <script src=\"https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js\"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
             <script>
                 function copyToClipboard() {
                     navigator.clipboard.writeText(window.location.href)
                         .then(() => {
                             const button = document.querySelector('.share-button');
                             const originalText = button.innerHTML;
-                            button.innerHTML = '<i class=\"fas fa-check\"></i> URL Copied!';
+                            button.innerHTML = '<i class="fas fa-check"></i> URL Copied!';
                             setTimeout(() => {
                                 button.innerHTML = originalText;
                             }, 2000);
@@ -217,10 +143,10 @@ try {
                     
                     // Add title
                     doc.setFontSize(24);
-                    doc.text(\"" . addslashes(htmlspecialchars($data['title'] ?: 'Play')) . "\", 20, 20);
+                    doc.text("Play", 20, 20);
                     
                     // Add image with proper aspect ratio
-                    const img = document.querySelector(\"img\");
+                    const img = document.querySelector("img");
                     const maxWidth = 170;
                     const maxHeight = 170;
                     
@@ -241,40 +167,40 @@ try {
                     // Get the image data from the src
                     const imgData = img.src;
                     
-                    doc.addImage(imgData, \"PNG\", x, 40, width, height);
+                    doc.addImage(imgData, "PNG", x, 40, width, height);
                     
                     // Add description if it exists
-                    const description = document.querySelector(\".description\");
+                    const description = document.querySelector(".description");
                     if (description) {
                         doc.setFontSize(12);
                         doc.text(description.innerText, 20, height + 60);
                     }
                     
                     // Save the PDF
-                    doc.save(\"" . addslashes(htmlspecialchars($data['title'] ?: 'play')) . ".pdf\");
+                    doc.save("play.pdf");
                 }
             </script>
         </head>
         <body>
             <!-- Google Tag Manager (noscript) -->
-            <noscript><iframe src=\"https://www.googletagmanager.com/ns.html?id=GTM-WVHM9WP\"
-            height=\"0\" width=\"0\" style=\"display:none;visibility:hidden\"></iframe></noscript>
+            <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WVHM9WP"
+            height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <!-- End Google Tag Manager (noscript) -->
             
             <header>
-                <h1>" . htmlspecialchars($data['title'] ?: 'Play') . "</h1>
+                <h1>Play</h1>
                 <h2>Brought to you by <a href='https://flagfootballplaydesigner.com'>FlagFootballPlayDesigner.com</a></h2>
             </header>
             
             <main>
-                <img src='" . htmlspecialchars($urlPath) . ".png' alt='" . htmlspecialchars($data['title'] ?: 'Play') . "' />
-                " . ($data['description'] ? "<div class='description'>" . $data['description'] . "</div>" : "") . "
+                <img src='o16w5a4s.png' alt='Play' />
+                
                 
                 <div class='button-container'>
                     <button onclick='copyToClipboard()' class='button share-button'>
                         <i class='fas fa-share-alt'></i> Share Play
                     </button>
-                    <a href='" . htmlspecialchars($urlPath) . ".png' download class='button download-button'>
+                    <a href='o16w5a4s.png' download class='button download-button'>
                         <i class='fas fa-download'></i> Download PNG
                     </a>
                     <button onclick='generatePDF()' class='button pdf-button'>
@@ -289,45 +215,9 @@ try {
             <footer>
                 <p>
                     <a href='/'>Home</a> | 
-                    <a href='/contact.html'>Contact</a> |
-                    <a href='/terms.html'>Terms and Conditions</a>
+                    <a href='/contact.html'>Contact</a>
                 </p>
                 <p>Brought to you by <a href='https://flagfootballplaydesigner.com'>FlagFootballPlayDesigner.com</a></p>
             </footer>
         </body>
-        </html>";
-        
-        if (file_put_contents($htmlPath, $htmlContent) === false) {
-            throw new Exception('Failed to save HTML file');
-        }
-        logMessage('HTML file saved successfully');
-        
-        echo json_encode([
-            'success' => true,
-            'playId' => $urlPath,
-            'url' => "/plays/$urlPath.html",
-            'debug' => [
-                'pngPath' => $pngPath,
-                'htmlPath' => $htmlPath
-            ]
-        ]);
-        
-    } else {
-        throw new Exception('Method not allowed: ' . $_SERVER['REQUEST_METHOD']);
-    }
-} catch (Exception $e) {
-    logMessage('Error occurred: ' . $e->getMessage());
-    http_response_code(500);
-    echo json_encode([
-        'success' => false,
-        'error' => $e->getMessage(),
-        'debug' => [
-            'method' => $_SERVER['REQUEST_METHOD'],
-            'contentType' => $_SERVER['CONTENT_TYPE'] ?? 'not set',
-            'requestSize' => $_SERVER['CONTENT_LENGTH'] ?? 'not set'
-        ]
-    ]);
-}
-
-logMessage('Script finished');
-?>
+        </html>

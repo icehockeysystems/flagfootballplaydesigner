@@ -46,6 +46,7 @@ class Canvas {
   bgItem = null
   logoItem = null
   bgFillItem = null
+  customBgItem = null
   activeItem = null
   activeItemOffset = null
   states = []
@@ -205,6 +206,11 @@ class Canvas {
     this.project.activeLayer.fitBounds(this.view.bounds)
     this.scale = this.view.size.width / this.scalingWidth
 
+    // Resize custom background if it exists
+    if (this.customBgItem) {
+      this.customBgItem.fitBounds(this.view.bounds);
+    }
+
     // Find all "path" tools and scale the stroke width and dash array.
     this.project.activeLayer.children.forEach(item => {
       if (item.data.tool === "path") {
@@ -345,6 +351,50 @@ class Canvas {
 
   // Define our tools.
   customTools = []
+
+  // Add this method to handle custom background
+  setCustomBackground(imageData) {
+    // Remove existing custom background if any
+    if (this.customBgItem) {
+      this.customBgItem.remove();
+    }
+
+    // Create new raster from image data
+    this.customBgItem = new Raster(imageData);
+    
+    // When the image loads, position and scale it
+    this.customBgItem.onLoad = () => {
+      // Calculate target width (10% of canvas width)
+      const targetWidth = this.view.bounds.width * 0.1;
+      
+      // Calculate scale factor to maintain aspect ratio
+      const scale = targetWidth / this.customBgItem.bounds.width;
+      
+      // Scale the image
+      this.customBgItem.scale(scale);
+      
+      // Center the image on the canvas
+      this.customBgItem.position = this.view.center;
+      
+      // Set opacity to 50%
+      this.customBgItem.opacity = 0.5;
+      
+      this.customBgItem.locked = true;
+      this.customBgItem.name = "custom-background";
+      
+      // Place above the default background (bgItem) but below other elements
+      if (this.bgItem) {
+        this.customBgItem.insertAbove(this.bgItem);
+      } else {
+        // If no bgItem exists yet, insert above bgFillItem
+        if (this.bgFillItem) {
+          this.customBgItem.insertAbove(this.bgFillItem);
+        }
+      }
+      
+      this.saveState();
+    };
+  }
 
   constructor() {
     var that = this;

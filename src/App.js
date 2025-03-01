@@ -191,6 +191,46 @@ const QuillWrapper = styled.div`
   }
 `;
 
+const InfoIcon = styled.span`
+  color: #666;
+  cursor: help;
+  display: inline-flex;
+  align-items: center;
+  
+  &:hover .tooltip {
+    visibility: visible;
+    opacity: 1;
+  }
+`
+
+const Tooltip = styled.span`
+  visibility: hidden;
+  background-color: #333;
+  color: white;
+  text-align: center;
+  padding: 8px 12px;
+  border-radius: 4px;
+  position: absolute;
+  z-index: 1;
+  font-size: 0.85em;
+  font-style: normal;
+  opacity: 0;
+  transition: opacity 0.2s;
+  white-space: nowrap;
+  margin-left: 8px;
+  
+  &::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: 100%;
+    margin-top: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent #333 transparent transparent;
+  }
+`
+
 // Define the App component
 function App({
   mode,
@@ -226,9 +266,15 @@ function App({
   const [showErrorModal, setShowErrorModal] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCreatingPage, setIsCreatingPage] = useState(false);
+  const [backgroundImage, setBackgroundImage] = useState(null)
+  const uploadImageRef = useRef()
+  const [uploadError, setUploadError] = useState('')
 
   // Add this useRef to store the canvas instance
   const paperInstance = useRef(null);
+
+  // Add this constant for max file size (2MB)
+  const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB in bytes
 
   // Exports title, description, and canvas data as JSON.
   const exportData = useCallback(() => {
@@ -614,6 +660,42 @@ function App({
     }
   }, [initialized]); // Only run when paper.js is initialized
 
+  // Update the upload handler
+  const handleUploadBackground = (event) => {
+    const file = event.target.files[0]
+    setUploadError(''); // Clear any previous errors
+    
+    if (file) {
+      // Check file size
+      if (file.size > MAX_FILE_SIZE) {
+        setUploadError('File size exceeds 2MB limit');
+        uploadImageRef.current.value = null;
+        return;
+      }
+
+      // Check file type
+      const allowedTypes = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        setUploadError('Please upload a PNG, JPEG, GIF, or WebP file');
+        uploadImageRef.current.value = null;
+        return;
+      }
+
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        setBackgroundImage(e.target.result)
+        if (paper.setCustomBackground) {
+          paper.setCustomBackground(e.target.result)
+        }
+      }
+      reader.onerror = () => {
+        setUploadError('Error reading file');
+      }
+      reader.readAsDataURL(file)
+    }
+    uploadImageRef.current.value = null
+  }
+
   return (
     <>
       <VariantSwitcher
@@ -641,6 +723,29 @@ function App({
       />
       {showForm &&
         <Form className="drill-maker__form" id="form">
+          <ImportInput
+            ref={uploadImageRef}
+            type="file"
+            accept=".png,.jpg,.jpeg,.gif,.webp"
+            onChange={handleUploadBackground}
+          />
+          <ButtonContainer>
+            <UploadButton 
+              onClick={() => uploadImageRef.current.click()}
+              type="button"
+            >
+              <i className="fas fa-image"></i> Add Team Logo
+            </UploadButton>
+            <InfoIcon>
+              <i className="fas fa-info-circle"></i>
+              <Tooltip className="tooltip">Max 2MB, PNG/JPEG/GIF/WebP</Tooltip>
+            </InfoIcon>
+          </ButtonContainer>
+          {uploadError && (
+            <ErrorMessage style={{ marginBottom: '16px' }}>
+              {uploadError}
+            </ErrorMessage>
+          )}
           <input
             type="text"
             value={title}
@@ -751,7 +856,7 @@ function App({
 }
 
 const Form = styled.div`
-  margin-top: 16px;
+  margin-top: 8px;
 
   input, textarea {
     margin-bottom: 16px;
@@ -802,15 +907,15 @@ const Actions = styled.div`
     border-color: #cc0000 !important;
   }
 
-  /* Update share button color */
+  /* Update share button color to match upload button green */
   button:has(i.fa-share-alt) {
-    background-color: #00cc44 !important;
-    border-color: #00cc44 !important;
+    background-color: #4CAF50 !important;
+    border-color: #4CAF50 !important;
   }
 
   button:has(i.fa-share-alt):hover {
-    background-color: #009933 !important;
-    border-color: #009933 !important;
+    background-color: #45a049 !important;
+    border-color: #45a049 !important;
   }
 `
 
@@ -818,6 +923,33 @@ const ImportInput = styled.input`
   visibility: hidden;
   width: 0;
   height: 0;
+`
+
+const UploadButton = styled.button`
+  background-color: #4CAF50;
+  border: 1px solid #4CAF50;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: 1.5;
+  display: inline-flex;
+  align-items: center;
+  
+  i {
+    margin-right: 8px;
+  }
+`
+
+const ButtonContainer = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 auto 16px;
+  justify-content: center;
+  width: 100%;
 `
 
 const ModalContent = styled.div`
